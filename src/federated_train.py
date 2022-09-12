@@ -43,14 +43,14 @@ class Logger(object):
 current_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
 '''
-Setup for evaluation phase
+Setup for evaluation phase  (TODO: maybe users can choose which dataset they wish to test.)
 '''
 data_transforms = transforms.Compose([
         transforms.Resize((256, 128)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-data_dir = "../datasets/Market/pytorch"
+data_dir = "../datasets/Market/pytorch" # only test on Market1501 every five epochs.
 
 test_datasets = {x: datasets.ImageFolder( os.path.join(data_dir,x) ,data_transforms) for x in ['gallery','query']}
 test_dataloaders = {x: torch.utils.data.DataLoader(test_datasets[x], batch_size=128,
@@ -65,7 +65,7 @@ gallery_cam, gallery_label = get_id(gallery_path)
 query_cam, query_label = get_id(query_path)
 
 '''
-Checkpoint Location 
+Checkpoint Location (TODO: CLI for users to setup location)
 '''
 checkpoint_dir = "../checkpoint/" + current_time + "-papersetting_fedavg" # Modify this line to change checkpoint location
 if not os.path.isdir(checkpoint_dir):
@@ -76,7 +76,7 @@ log_path = checkpoint_dir + "/" + current_time + ".log"
 sys.stdout = Logger(log_path)
 
 '''
-Configs
+Configs (TODO: CLI for users to change configs)
 '''
 config = {
     "global_iteration": 100,
