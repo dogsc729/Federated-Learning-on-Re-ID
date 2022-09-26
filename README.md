@@ -1,5 +1,12 @@
-# Federated-Learning-on-Re-ID
-
+---
+layout: page
+title: Federated Re-ID
+description: Federated Learning on Person Re-Identification
+img: assets/img/fedreid_background.png
+github: https://github.com/dogsc729/Federated-Learning-on-Re-ID
+importance: 1
+category: Research
+---
 ### Abstract
 
 This project covers experiments of my research about Federated Learning on Person Re-Identification. Our primary goal is to jointly optimize performance on seen domain and unseen domain.
@@ -46,4 +53,12 @@ mkdir datasets
     ```
     Note that the structure above including the naming should be exactly the same.
 4. Pre-process the datasets by running `python3 ./src/big_data_preprocess.py`
-5. Start the training by `python3 ./src/federated_train.py`
+5. Start the training by `python3 ./src/federated_train.py`. In addition, you can change the settings by adding the arguments below.  
+   * `-s, --scenario`: You can change the training scenario by selecting `ska` for Selective Knowledge Aggregation or `fed` for classic Federated Learning, The default value is `ska`.
+   * `-l, --location`: You can change the location of the directory under `/checkpoint/`. The log file, models, and record of training progress in .png file will be stored here. The default value is the time you start the training.
+   * `-m, --model`: You can change the type of model by selecting `attentive` for Attentive normalization ResNet50 or `vanilla` for vanilla ResNet50. The default value is `attentive`.
+   * `--global_iter`: You can change the number of iteration of the global training stage. The default value is `100`.
+   * `--local_epoch`: You can change the number of epoch trained on each client model. The default value is `1`.
+   * `lr_feature`: You can change the learning rate of the feature extraction layers of the model. The default value is `0.01`.
+   * `lr_classifier`: You can change the learning rate of the classifier layers of the model. The default value is `0.1`.  
+    For example, You can run `python3 ./src/federated_train.py -s fed -l federated_test -m vanilla --local_epoch 5` to set your experiment on classic Federated Learning scenario, checkpoint location at `/checkpoint/federated_test`, using vanilla ResNet50 as your model and set the number of local epoch trained for each global round as `5`.
