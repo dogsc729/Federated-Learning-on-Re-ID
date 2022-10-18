@@ -1,12 +1,4 @@
----
-layout: page
-title: Federated Re-ID
-description: Federated Learning on Person Re-Identification
-img: assets/img/fedreid_background.png
-github: https://github.com/dogsc729/Federated-Learning-on-Re-ID
-importance: 1
-category: Research
----
+## Federated Learning on Person Re-Identification
 ### Abstract
 
 This project covers experiments of my research about Federated Learning on Person Re-Identification. Our primary goal is to jointly optimize performance on seen domain and unseen domain.
