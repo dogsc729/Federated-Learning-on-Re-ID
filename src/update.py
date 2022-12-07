@@ -15,22 +15,38 @@ class LocalUpdate(object):
         self.model_type = model_type
         if self.model_type == 'attentive':
             import models_ska as resnets
-        else:
+        elif self.model_type == 'vanilla':
             import resnet_vallina as resnets
-        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/resnet50-19c8e357.pth') # Fedavg
-        checkpoint = torch.load("model_best.pth.tar", map_location = 'cpu')
-        st_dict = {k[15:]: v for k, v in checkpoint['state_dict'].items()}
+        elif self.model_type == 'ibn':
+            import resnet_ibn_a as resnets
 
-        self.specific_model = resnets.__dict__['resnet50'](client=True, out_feature=output_dim)
+        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/resnet50-19c8e357.pth') # vanilla resnet50 
+        checkpoint = torch.load("model_best.pth.tar", map_location = 'cpu') 
+        st_dict = {k[15:]: v for k, v in checkpoint['state_dict'].items()} # attentive resnet50
+
         if self.model_type == 'attentive':
+            self.specific_model = resnets.__dict__['resnet50'](client=True, out_feature=output_dim) 
             self.specific_model.load_state_dict(st_dict, strict=False)
-        self.generalized_model = resnets.__dict__['resnet50'](client=True, out_feature=output_dim)
-        self.generalized_model.load_state_dict(state_dict, strict=False)
-        self.generalized_model.load_state_dict(self.specific_model.state_dict())
+        elif self.model_type == 'vanilla':
+            self.specific_model = resnets.__dict__['resnet50'](client=True, out_feature=output_dim)
+            self.specific_model.load_state_dict(state_dict, stric=False)
+        elif self.model_type == 'ibn':
+            self.specific_model = resnets.__dict__['resnet50_ibn_a'](last_stride=1, pretrained=True, client=True, out_feature=output_dim)
+
+        if self.model_type == "attentive" or self.model_type == "vanilla":
+            self.generalized_model = resnets.__dict__['resnet50'](client=True, out_feature=output_dim)
+            self.generalized_model.load_state_dict(state_dict, strict=False) # what is this line for?
+            self.local_aggregated_model = resnets.__dict__['resnet50']()
+        elif self.model_type == "ibn":
+            self.generalized_model = resnets.__dict__['resnet50_ibn_a'](last_stride=1, pretrained=True, client=True, out_feature=output_dim)
+            self.local_aggregated_model = resnets.__dict__['resnet50_ibn_a'](last_stride=1, pretrained=True)
+        '''
+        Copy and check specific and generalized model
+        '''
+        self.generalized_model.load_state_dict(self.specific_model.state_dict()) # copy specific model parameter to generalized model
         for p1, p2 in zip(self.specific_model.parameters(), self.generalized_model.parameters()):
             if p1.data.ne(p2.data).sum() > 0:
                 print("they are not the same")
-        self.local_aggregated_model = resnets.__dict__['resnet50']() # seems to be useless
         
         self.local_epoch = local_epoch
         self.total_global_epoch = total_global_epoch
@@ -75,11 +91,11 @@ class LocalUpdate(object):
 
             for data in tqdm(self.dataloaders['train']):
                 inputs, labels = data
-                
+                #print(inputs.size())
                 if self.scenario == 'ska':
                     specific_output = self.specific_model(inputs.to(self.device))
                     generalized_output = self.generalized_model(inputs.to(self.device))
-
+                    
                     specific_loss = self.criterion(specific_output, labels.to(self.device))
                     generalized_loss = self.criterion(generalized_output, labels.to(self.device))
 

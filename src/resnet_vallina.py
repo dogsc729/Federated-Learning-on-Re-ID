@@ -123,7 +123,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, client, out_feature=1000, zero_init_residual=False,
+    def __init__(self, block, layers, client, out_feature, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
                  norm_layer=None):
         super(ResNet, self).__init__()
@@ -272,7 +272,7 @@ def resnet50(pretrained=False, progress=True, client=False, out_feature=1000, **
     """
     return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained, progress, client, out_feature,
                    **kwargs)
-
+# resnet50 -> _resnet -> ResNet ->
 
 
 def resnet101(pretrained=False, progress=True, **kwargs):

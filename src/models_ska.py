@@ -128,7 +128,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, client, out_feature=1000, groups=1, width_per_group=64):
+    def __init__(self, block, layers, client, out_feature, groups=1, width_per_group=64):
         super(ResNet, self).__init__()
         replace_stride_with_dilation = [False, False, False]
         base_inplanes = 64

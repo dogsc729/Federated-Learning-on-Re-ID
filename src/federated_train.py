@@ -15,6 +15,7 @@ import random
 import matplotlib.pyplot as plt
 import re
 import argparse
+from torchsummary import summary
 
 from update import LocalUpdate
 from models import Global_model, Client_model
@@ -51,7 +52,10 @@ class Logger(object):
         # this flush method is needed for python 3 compatibility.
         # this handles the flush command by doing nothing.
         # you might want to specify some extra behavior here.
-        pass    
+        pass
+'''
+Start from here
+'''            
 if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
@@ -68,8 +72,10 @@ if __name__ == '__main__':
         import models_ska as resnets
     elif args.model == 'vanilla':    
         import resnet_vallina as resnets
+    elif args.model == 'ibn':
+        import resnet_ibn_a as resnets
     else:
-        raise ValueError("Model type must be one of ['attentive', 'vanilla']")
+        raise ValueError("Model type must be one of ['attentive', 'vanilla', 'ibn']")
 
     '''
     Checkpoint Location 
@@ -164,6 +170,7 @@ if __name__ == '__main__':
     #train_img_size = [35206, 10224, 19446, 15811] # after adding CUHK02
     train_img_size = [31580, 6598, 15820, 12185]
     #train_img_size = [6598, 12185]
+    #CUHK02 train ID size = 1813
 
     for dataset in dataset_list:
         data_dir = f'../datasets/{dataset}/pytorch'
@@ -190,7 +197,7 @@ if __name__ == '__main__':
     '''
     if torch.cuda.is_available():
         print("==============> Using GPU")
-        device = 'cuda:1'
+        device = 'cuda:0'
     else:
         print("==============> Using CPU")
         device = 'cpu'
@@ -208,23 +215,26 @@ if __name__ == '__main__':
     '''
     Global model
     '''
-    global_model = resnets.__dict__['resnet50']()
-    global_model.load_state_dict(state_dict, strict=False)
-    if model_type == 'attentive':
-        checkpoint = torch.load("model_best.pth.tar", map_location = 'cpu')
-        st_dict = {k[15:]: v for k, v in checkpoint['state_dict'].items()}
-        st_dict_keys = [k[15:] for k, v in checkpoint['state_dict'].items()] # keys of customize resnet50
+    if args.model == "attentive" or args.model == "vanilla":
+        global_model = resnets.__dict__['resnet50']()
+        global_model.load_state_dict(state_dict, strict=False)
+        if model_type == 'attentive':
+            checkpoint = torch.load("model_best.pth.tar", map_location = 'cpu')
+            st_dict = {k[15:]: v for k, v in checkpoint['state_dict'].items()} # dict of customize resnet50
+            st_dict_keys = [k[15:] for k, v in checkpoint['state_dict'].items()] # keys of customize resnet50
 
-        for key in state_dict_keys:
-            try:
-                del st_dict[key] # remove the keys that are both in customize and vanilla resnet50
-            except:
-                pass
-        for k, v in st_dict.items():
-            if re.findall("num_batches_tracked", k):
-                st_dict[k] = torch.tensor(0)
+            for key in state_dict_keys:
+                try:
+                    del st_dict[key] # remove the keys that are both in customize and vanilla resnet50
+                except:
+                    pass
+            for k, v in st_dict.items():
+                if re.findall("num_batches_tracked", k):
+                    st_dict[k] = torch.tensor(0)
 
-        global_model.load_state_dict(st_dict, strict=False)
+            global_model.load_state_dict(st_dict, strict=False)
+    elif args.model == "ibn":
+        global_model = resnets.__dict__['resnet50_ibn_a'](last_stride=1, pretrained=True)
 
     global_model.to(device)
     global_model.train()

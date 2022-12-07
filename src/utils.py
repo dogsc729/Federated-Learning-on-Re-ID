@@ -7,13 +7,15 @@ import re
 def average_weights(w, train_img_size):
     '''
     Returns the average of the weights
+    w: list of model weights of each client
+    train_img_size: list of image size for training stage
     '''
     total_img_size = 0
     for img in train_img_size:
-        total_img_size += img
-    w_avg = copy.deepcopy(w[0])
+        total_img_size += img # calculate total image size for division
+    w_avg = copy.deepcopy(w[0]) # get the first weight as base
     # multiply the num of image in each dataset with its weights 
-    for key in w_avg.keys():
+    for key in w_avg.keys(): # base calculation
         w_avg[key] = w_avg[key] * train_img_size[0]
     for key in w_avg.keys():
         for i in range(1, len(w)):
